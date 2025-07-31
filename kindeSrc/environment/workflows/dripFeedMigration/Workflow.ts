@@ -30,11 +30,11 @@ export default async function Workflow(event: onExistingPasswordProvidedEvent) {
   const { hashedPassword, providedEmail, password, hasUserRecordInKinde } =
     event.context.auth;
 
-  if (hasUserRecordInKinde) {
-    console.log("User exists in Kinde");
-    return;
-  }
-  console.log("User does not exist in Kinde");
+  // if (hasUserRecordInKinde) {
+  //   console.log("User exists in Kinde");
+  //   return;
+  // }
+  // console.log("User does not exist in Kinde");
   try {
     // The URL of the API you want to send the payload to
     const CHECK_PASSWORD_API_URL = getEnvironmentVariable(
