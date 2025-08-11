@@ -6,7 +6,7 @@ import {
   secureFetch,
   fetch,
   getEnvironmentVariable,
-} from "@kinde/infrastructure";
+} from "@kinde/infrastructure"
 
 // The setting for this workflow
 export const workflowSettings: WorkflowSettings = {
@@ -23,33 +23,36 @@ export const workflowSettings: WorkflowSettings = {
     "kinde.fetch": {}, // Required for management API calls
     url: {}, // required for url params
   },
-};
+}
 
 // The workflow code to be executed when the event is triggered
 export default async function Workflow(event: onExistingPasswordProvidedEvent) {
   const { hashedPassword, providedEmail, password, hasUserRecordInKinde } =
-    event.context.auth;
+    event.context.auth
 
-  // if (hasUserRecordInKinde) {
-  //   console.log("User exists in Kinde");
-  //   return;
-  // }
-  // console.log("User does not exist in Kinde");
+  console.log("Running the drip feed workflow")
+  console.log("The auth object from the flow", event.context.auth)
+
+  if (hasUserRecordInKinde) {
+    console.log("User exists in Kinde")
+    return
+  }
+  console.log("User does not exist in Kinde")
   try {
     // The URL of the API you want to send the payload to
     const CHECK_PASSWORD_API_URL = getEnvironmentVariable(
       "CHECK_PASSWORD_API_URL"
-    )?.value;
+    )?.value
 
     if (!CHECK_PASSWORD_API_URL) {
-      throw Error("Endpoint not set");
+      throw Error("Endpoint not set")
     }
 
     // The payload you want to send
     const payload = {
       email: providedEmail,
       password: password,
-    };
+    }
 
     const { data: userData } = await secureFetch(CHECK_PASSWORD_API_URL, {
       method: "POST",
@@ -58,15 +61,15 @@ export default async function Workflow(event: onExistingPasswordProvidedEvent) {
         "content-type": "application/json",
       },
       body: payload,
-    });
+    })
 
     if (!userData) {
       // If the email/password is not verified in the external system, you can invalidate the form field
-      invalidateFormField("p_password", "Email or password not found");
+      invalidateFormField("p_password", "Email or password not found")
     } else {
       // Password is verified in the external system
       // You can create the user in Kinde and set the password
-      const kindeAPI = await createKindeAPI(event);
+      const kindeAPI = await createKindeAPI(event)
 
       // Create the user in Kinde
       // You can use the userData from the external system to populate the Kinde user
@@ -86,9 +89,9 @@ export default async function Workflow(event: onExistingPasswordProvidedEvent) {
             },
           ],
         }),
-      });
+      })
 
-      const userId = res.id;
+      const userId = res.id
 
       // Set the password for the user in Kinde
       // You can use the hashed password provided by Kinde
@@ -97,10 +100,10 @@ export default async function Workflow(event: onExistingPasswordProvidedEvent) {
         params: {
           hashed_password: hashedPassword,
         },
-      });
-      console.log(pwdRes.message);
+      })
+      console.log(pwdRes.message)
     }
   } catch (error) {
-    console.error("error", error);
+    console.error("error", error)
   }
 }
